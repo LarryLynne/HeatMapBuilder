@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heatmap Builder</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-bg: #0f172a;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --input-bg: #1e293b;
+            --btn-export: #8b5cf6;
+            --btn-export-hover: #7c3aed;
+        }
+
+        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; display: flex; height: 100vh; overflow: hidden; background: #000; }
+        
+        /* --- Сайдбар --- */
+        #controls {
+            width: 340px;
+            height: 100%;
+            background: var(--sidebar-bg);
+            color: var(--text-main);
+            padding: 25px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map { flex: 1; height: 100%; z-index: 1; }
+        
+        h3 { margin: 0 0 20px 0; font-weight: 700; font-size: 1.4rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-family: inherit;
+            width: auto;
+            min-width: 200px;
+        }
+
+        /* Загрузка */
+        .file-upload-wrapper {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        input[type="file"] { display: none; }
+        .btn-upload {
+            background: var(--input-bg);
+            color: var(--text-main);
+        }
+        .btn-upload:hover {
+            background: #334155;
+            border-color: var(--accent);
+        }
+        .btn-upload.success {
+            background: #065f46;
+            border-color: #10b981;
+            color: #fff;
+        }
+        .btn-upload.success:hover {
+            background: #047857;
+        }
+        
+        /* Экспорт */
+        .export-section {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .btn-export {
+            background: var(--input-bg);
+            color: var(--text-main);
+            width: 100%;
+        }
+        .btn-export:hover {
+            background: #334155;
+            border-color: var(--btn-export);
+        }
+
+        /* Настройки */
+        h4 { margin: 20px 0 10px 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+        .control-group { background: var(--input-bg); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
+        .slider-val { font-weight: bold; color: var(--accent); }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 5px 0; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #fff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+
+        select { width: 100%; padding: 10px; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; outline: none; }
+        select:hover { background: #475569; }
+
+        /* Элементы фильтра дат */
+        .date-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .date-btn {
+            background: #243146;
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: background 0.15s, border-color 0.15s;
+            width: 100%;
+        }
+        .date-btn:hover {
+            background: #334155;
+            border-color: rgba(255,255,255,0.2);
+        }
+        .date-btn.active {
+            background: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+            border-color: var(--accent);
+        }
+
+        #status { margin-top: 15px; font-size: 0.85rem; padding: 10px; border-radius: 6px; text-align: center; background: rgba(255,255,255,0.05); }
+        
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--sidebar-bg); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <h3>Heatmap Builder</h3>
+        
+        <div class="file-upload-wrapper">
+            <label for="fileInput" class="btn btn-upload" id="uploadLabel">
+                📂 Загрузить файл
+            </label>
+            <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+        </div>
+
+        <div id="settings">
+            <h4>Стиль</h4>
+            <div class="control-group">
+                <div class="slider-label">Цветовая схема</div>
+                <select id="gradientSelect">
+                    <option value="default">🌈 Стандарт (Радуга)</option>
+                    <option value="fire">🔥 Огонь (Черный-Красный)</option>
+                    <option value="deepblue">🌊 Глубина (Синий-Бирюзовый)</option>
+                    <option value="toxic">☣️ Токсик (Зеленый-Лайм)</option>
+                    <option value="sunrise">🌅 Рассвет (Пурпур-Золото)</option>
+                </select>
+            </div>
+
+            <h4>Параметры</h4>
+            <div class="control-group">
+                <div class="slider-label"><span>Радиус</span><span id="radiusVal" class="slider-val">25</span></div>
+                <input type="range" id="radiusRange" min="5" max="80" value="25">
+                
+                <div class="slider-label" style="margin-top: 15px;"><span>Размытие</span><span id="blurVal" class="slider-val">15</span></div>
+                <input type="range" id="blurRange" min="1" max="60" value="15">
+            </div>
+
+            <h4>Данные</h4>
+            <div class="control-group">
+                <div class="slider-label"><span>Чувствительность</span><span id="maxVal" class="slider-val">1.0</span></div>
+                <input type="range" id="maxRange" min="0.1" max="5" step="0.1" value="1.0">
+            </div>
+
+            <div id="dateFilterSection" style="display: none;">
+                <h4>Фильтр по датам</h4>
+                <div class="control-group">
+                    <div id="dateButtonsContainer" class="date-container"></div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; text-align: center;">Зажмите Ctrl / Cmd для мультивыбора</div>
+                </div>
+            </div>
+            
+            <div id="status" style="color: var(--text-muted)">Данные не загружены</div>
+        </div>
+
+        <div class="export-section">
+            <button id="snapBtn" class="btn btn-export">
+                📸 Скачать карту (.png)
+            </button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
+
+    <script>
+        // 1. Инициализация карты и слоев
+        const lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', maxZoom: 19, crossOrigin: true });
+        const darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB', maxZoom: 20, crossOrigin: true });
+        const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 18, crossOrigin: true });
+
+        const map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            layers: [lightMap],
+            preferCanvas: true
+        });
+
+        const baseMaps = { "Светлая": lightMap, "Темная": darkMap, "Спутник": satelliteMap };
+        L.control.layers(baseMaps, null, {position: 'topright'}).addTo(map);
+
+        // 2. Инициализация скриншотера
+        const screenshoter = L.simpleMapScreenshoter({
+            hidden: true,
+            mimeType: 'image/png'
+        }).addTo(map);
+
+        // 3. Переменные
+        let heatLayer = null;
+        let cachedData = [];
+        let uniqueDates = [];
+        let selectedDates = new Set();
+
+        const radiusInput = document.getElementById('radiusRange');
+        const blurInput = document.getElementById('blurRange');
+        const maxInput = document.getElementById('maxRange');
+        const gradientSelect = document.getElementById('gradientSelect');
+        const statusDiv = document.getElementById('status');
+        const uploadLabel = document.getElementById('uploadLabel');
+        const snapBtn = document.getElementById('snapBtn');
+        const dateFilterSection = document.getElementById('dateFilterSection');
+        const dateButtonsContainer = document.getElementById('dateButtonsContainer');
+
+        // Градиенты
+        const gradients = {
+            default: { 0.4: 'blue', 0.65: 'lime', 1: 'red' },
+            fire: { 0.2: 'black', 0.5: 'maroon', 0.8: 'red', 1: 'orange' },
+            deepblue: { 0.2: '#000033', 0.5: '#003399', 0.8: '#0099ff', 1: '#ccffff' },
+            toxic: { 0.2: 'black', 0.5: 'green', 0.8: '#ccff00', 1: 'white' },
+            sunrise: { 0.2: 'black', 0.5: 'purple', 0.8: 'magenta', 1: 'gold' }
+        };
+
+        // Вспомогательная функция форматирования дат (включая серийные номера Excel)
+        function parseExcelDate(rawDate) {
+            if (rawDate === undefined || rawDate === null) return null;
+            
+            // Если Excel отдал дату как порядковое число (например, 46160)
+            if (typeof rawDate === 'number' && rawDate > 30000 && rawDate < 60000) {
+                const dateObj = new Date((rawDate - 25569) * 86400 * 1000);
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                return `${day}.${month}.${year}`;
+            }
+            
+            // Если библиотека распознала объект даты напрямую
+            if (rawDate instanceof Date) {
+                const day = String(rawDate.getDate()).padStart(2, '0');
+                const month = String(rawDate.getMonth() + 1).padStart(2, '0');
+                const year = rawDate.getFullYear();
+                return `${day}.${month}.${year}`;
+            }
+            
+            // Если это уже строка
+            return String(rawDate).trim();
+        }
+
+        // 4. Логика загрузки
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            uploadLabel.innerHTML = `⏳ Чтение...`;
+            uploadLabel.classList.remove('success');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+                    processData(jsonData, file.name);
+                } catch (err) {
+                    console.error(err);
+                    statusDiv.innerHTML = "<span style='color:#ef4444'>Ошибка файла</span>";
+                    uploadLabel.innerHTML = "📂 Загрузить файл";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function processData(data, filename) {
+            const heatData = [];
+            let bounds = new L.LatLngBounds();
+
+            // Сброс фильтров
+            selectedDates.clear();
+            uniqueDates = [];
+            dateFilterSection.style.display = 'none';
+            dateButtonsContainer.innerHTML = '';
+
+            data.forEach(row => {
+                const keys = Object.keys(row);
+                const findKey = (s) => keys.find(k => k.toLowerCase().includes(s));
+                const latKey = findKey('lat');
+                const lngKey = findKey('lng') || findKey('lon');
+                const valKey = findKey('val') || findKey('count') || findKey('weight');
+                const dateKey = findKey('дат') || findKey('date');
+
+                if (latKey && lngKey) {
+                    const lat = parseFloat(row[latKey]);
+                    const lng = parseFloat(row[lngKey]);
+                    const val = valKey ? parseFloat(row[valKey]) : 0.5;
+                    const dateVal = dateKey ? parseExcelDate(row[dateKey]) : null;
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        heatData.push({ lat, lng, val, date: dateVal });
+                        bounds.extend([lat, lng]);
+                    }
+                }
+            });
+
+            if (heatData.length > 0) {
+                cachedData = heatData;
+                
+                // Сбор уникальных дат
+                const datesSet = new Set();
+                heatData.forEach(pt => { if (pt.date) datesSet.add(pt.date); });
+
+                if (datesSet.size > 0) {
+                    uniqueDates = Array.from(datesSet);
+                    
+                    // Хронологическая сортировка формата DD.MM.YYYY
+                    uniqueDates.sort((a, b) => {
+                        const parseDate = (str) => {
+                            const parts = str.split(/[\.\-\/]/);
+                            if (parts.length === 3) {
+                                if (parts[2].length === 4) return new Date(parts[2], parts[1]-1, parts[0]);
+                                if (parts[0].length === 4) return new Date(parts[0], parts[1]-1, parts[2]);
+                            }
+                            return new Date(str);
+                        };
+                        const dA = parseDate(a);
+                        const dB = parseDate(b);
+                        if (!isNaN(dA) && !isNaN(dB)) return dA - dB;
+                        return a.localeCompare(b);
+                    });
+
+                    renderDateFilters();
+                    dateFilterSection.style.display = 'block';
+                }
+                
+                drawHeatmap();
+                map.fitBounds(bounds);
+                
+                uploadLabel.innerHTML = `✅ ${filename}`;
+                uploadLabel.classList.add('success');
+                updateStatusText();
+            } else {
+                statusDiv.innerHTML = "Координаты не найдены";
+            }
+        }
+
+        // Отрисовка кнопок фильтра
+        function renderDateFilters() {
+            dateButtonsContainer.innerHTML = '';
+            uniqueDates.forEach(dateStr => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'date-btn';
+                btn.textContent = dateStr;
+                
+                btn.addEventListener('click', function(e) {
+                    const isMulti = e.ctrlKey || e.metaKey;
+                    
+                    if (isMulti) {
+                        if (selectedDates.has(dateStr)) {
+                            selectedDates.delete(dateStr);
+                            btn.classList.remove('active');
+                        } else {
+                            selectedDates.add(dateStr);
+                            btn.classList.add('active');
+                        }
+                    } else {
+                        const wasActive = selectedDates.has(dateStr) && selectedDates.size === 1;
+                        
+                        selectedDates.clear();
+                        dateButtonsContainer.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+                        
+                        if (!wasActive) {
+                            selectedDates.add(dateStr);
+                            btn.classList.add('active');
+                        }
+                    }
+                    
+                    updateStatusText();
+                    drawHeatmap();
+                });
+                
+                dateButtonsContainer.appendChild(btn);
+            });
+        }
+
+        function updateStatusText() {
+            const total = cachedData.length;
+            if (selectedDates.size > 0) {
+                const filtered = cachedData.filter(pt => selectedDates.has(pt.date)).length;
+                statusDiv.innerHTML = `<span style="color:#38bdf8">${filtered} из ${total} точек</span>`;
+            } else {
+                statusDiv.innerHTML = `<span style="color:#38bdf8">${total} точек</span>`;
+            }
+        }
+
+        // 5. Отрисовка
+        function drawHeatmap() {
+            if (cachedData.length === 0) return;
+            const r = parseInt(radiusInput.value);
+            const b = parseInt(blurInput.value);
+            const m = parseFloat(maxInput.value);
+            const gKey = gradientSelect.value;
+
+            document.getElementById('radiusVal').textContent = r;
+            document.getElementById('blurVal').textContent = b;
+            document.getElementById('maxVal').textContent = m;
+
+            if (heatLayer) map.removeLayer(heatLayer);
+
+            const options = { radius: r, blur: b, maxZoom: 10, max: m };
+            if (gKey !== 'default') options.gradient = gradients[gKey];
+
+            const pointsToDraw = selectedDates.size > 0 
+                ? cachedData.filter(pt => selectedDates.has(pt.date)) 
+                : cachedData;
+
+            const leafletPoints = pointsToDraw.map(pt => [pt.lat, pt.lng, pt.val]);
+            heatLayer = L.heatLayer(leafletPoints, options).addTo(map);
+        }
+
+        // 6. Скриншот
+        snapBtn.addEventListener('click', function() {
+            const originalText = snapBtn.textContent;
+            snapBtn.textContent = "⏳ Создание снимка...";
+            
+            screenshoter.takeScreen('blob').then(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'heatmap_export.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                snapBtn.textContent = originalText;
+            }).catch(e => {
+                console.error(e);
+                alert("Ошибка при создании снимка. Возможно, браузер блокирует кросс-доменные картинки тайлов.");
+                snapBtn.textContent = originalText;
+            });
+        });
+
+        // Слушатели настроек
+        radiusInput.addEventListener('input', drawHeatmap);
+        blurInput.addEventListener('input', drawHeatmap);
+        maxInput.addEventListener('input', drawHeatmap);
+        gradientSelect.addEventListener('change', drawHeatmap);
+    </script>
+</body>
+</html>
