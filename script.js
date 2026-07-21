@@ -12,7 +12,7 @@ map.pm.addControls({
     drawCircleMarker: false, drawPolyline: false, drawCircle: false, drawText: false,
     editMode: false, dragMode: false, cutPolygon: false, removalMode: true
 });
-map.pm.setLang('ru');
+map.pm.setLang('ua');
 
 const screenshoter = L.simpleMapScreenshoter({ hidden: true, mimeType: 'image/png' }).addTo(map);
 
