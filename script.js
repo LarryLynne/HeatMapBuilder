@@ -4,7 +4,7 @@ const darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/
 const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 18, crossOrigin: true });
 
 const map = L.map('map', { center: [49.589, 34.551], zoom: 6, layers: [lightMap], preferCanvas: true });
-L.control.layers({ "Светлая": lightMap, "Темная": darkMap, "Спутник": satelliteMap }, null, {position: 'topright'}).addTo(map);
+L.control.layers({ "Світла": lightMap, "Темна": darkMap, "Супутник": satelliteMap }, null, {position: 'topright'}).addTo(map);
 
 // Инициализация инструментов рисования Geoman
 map.pm.addControls({
@@ -118,8 +118,8 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             processData(jsonData, file.name);
         } catch (err) {
             console.error(err);
-            statusDiv.innerHTML = "Ошибка";
-            uploadLabel.innerHTML = "📂 Загрузить Excel / CSV";
+            statusDiv.innerHTML = "Помилка";
+            uploadLabel.innerHTML = "📂 Завантажити Excel / CSV";
         }
     };
     reader.readAsArrayBuffer(file);
@@ -141,8 +141,8 @@ function processData(data, filename) {
     const lngKey = findKey('lng') || findKey('lon') || findKey('долг');
     
     if (!latKey || !lngKey) {
-        statusDiv.innerHTML = "Нет координат";
-        alert("Не найдены столбцы с широтой (Lat) и долготой (Lng)");
+        statusDiv.innerHTML = "Відсутні координати";
+        alert("Не знайдено стовпці з широтою (Lat) та довготою (Lng)");
         return;
     }
 
@@ -184,7 +184,7 @@ function processData(data, filename) {
                     const parsedDate = parseExcelDate(rawVal);
                     if (parsedDate) rawVal = parsedDate;
                 }
-                pt.filters[fKey] = rawVal !== undefined && rawVal !== null && rawVal !== '' ? String(rawVal).trim() : 'Не указано';
+                pt.filters[fKey] = rawVal !== undefined && rawVal !== null && rawVal !== '' ? String(rawVal).trim() : 'Не вказано';
             });
 
             heatData.push(pt);
@@ -248,7 +248,7 @@ function renderSlicers(filterKeys) {
             </div>
             <div class="accordion-body ${isCollapsed ? 'collapsed' : ''}">
                 <div class="slicer-container"></div>
-                <div class="hint-text">Ctrl / Cmd для мультивыбора</div>
+                <div class="hint-text">Ctrl / Cmd для мультивибору</div>
             </div>
         `;
         
@@ -300,7 +300,7 @@ function renderSlicers(filterKeys) {
         const resetBtn = document.createElement('button');
         resetBtn.className = 'btn';
         resetBtn.style.cssText = 'width: 100%; background: #334155; padding: 10px; margin-bottom: 10px; border-color: rgba(255,255,255,0.2);';
-        resetBtn.innerHTML = '🔄 Сбросить все фильтры';
+        resetBtn.innerHTML = '🔄 Збити усі фільтри';
         resetBtn.onclick = () => {
             for (const key in activeFilters) activeFilters[key].clear();
             dynamicSlicers.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
@@ -325,7 +325,7 @@ function updateStatusText() {
     const total = cachedData.length;
     const filtered = getFilteredData().length;
     const hasActiveFilters = Object.values(activeFilters).some(set => set.size > 0);
-    statusDiv.innerHTML = hasActiveFilters ? `${filtered} из ${total}` : `Всего: ${total}`;
+    statusDiv.innerHTML = hasActiveFilters ? `${filtered} из ${total}` : `Всього: ${total}`;
 }
 
 // --- 7. ОТРИСОВКА ТЕПЛОВОЙ КАРТЫ ---
@@ -388,7 +388,7 @@ function calculateZoneStats(layer) {
     zoneListContainer.innerHTML = '';
 
     if (sortedNodes.length === 0) {
-        zoneListContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:10px;">В зоне нет точек</div>';
+        zoneListContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:10px;">В зоні відсутні точки</div>';
     } else {
         sortedNodes.forEach(([name, val]) => {
             const item = document.createElement('div');

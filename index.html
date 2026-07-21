@@ -20,12 +20,12 @@
         <div class="logo">🔥 Heatmap Pro</div>
         <div class="top-controls">
             <div class="file-upload-wrapper">
-                <label for="fileInput" class="btn btn-upload" id="uploadLabel">📂 Загрузить Excel / CSV</label>
+                <label for="fileInput" class="btn btn-upload" id="uploadLabel">📂 Завантажити Excel / CSV</label>
                 <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
             </div>
             
-            <button id="settingsBtn" class="btn btn-settings">⚙️ Настройки карты</button>
-            <button id="snapBtn" class="btn btn-export">📸 Скачать (.png)</button>
+            <button id="settingsBtn" class="btn btn-settings">⚙️ Налаштування мапи</button>
+            <button id="snapBtn" class="btn btn-export">📸 Скачати (.png)</button>
         </div>
     </header>
 
@@ -34,12 +34,12 @@
         <!-- Левая панель (ТОЛЬКО ФИЛЬТРЫ) -->
         <aside id="sidebar">
             <div class="sidebar-header">
-                <h3>🔍 Фильтры данных</h3>
-                <div id="status" class="status-badge">Нет данных</div>
+                <h3>🔍 Фільтри</h3>
+                <div id="status" class="status-badge">Відсутні дані</div>
             </div>
             
             <div id="dynamicSlicers" class="slicers-wrapper">
-                <div class="empty-state">Загрузите файл, чтобы здесь появились срезы для фильтрации</div>
+                <div class="empty-state">Завантажте файл для відображення фільтрів</div>
             </div>
         </aside>
 
@@ -50,29 +50,29 @@
     <!-- 1. Модальное (плавающее) окно настроек тепловой карты -->
     <div id="settingsModal" class="floating-window" style="display: none; top: 80px; right: 20px;">
         <div class="window-header" id="settingsHeader">
-            <span>⚙️ Настройки тепловой карты</span>
+            <span>⚙️ Налаштування теплової карти</span>
             <button class="btn-close" onclick="document.getElementById('settingsModal').style.display='none'">✖</button>
         </div>
         <div class="window-body">
             <div class="control-group">
-                <div class="slider-label">Цветовая схема</div>
+                <div class="slider-label">Кольорова схема</div>
                 <select id="gradientSelect">
-                    <option value="default">🌈 Стандарт (Радуга)</option>
-                    <option value="fire">🔥 Огонь (Черный-Красный)</option>
-                    <option value="deepblue">🌊 Глубина (Синий-Бирюзовый)</option>
-                    <option value="toxic">☣️ Токсик (Зеленый-Лайм)</option>
-                    <option value="sunrise">🌅 Рассвет (Пурпур-Золото)</option>
+                    <option value="default">🌈 Стандарт (Веселка)</option>
+                    <option value="fire">🔥 Вогонь</option>
+                    <option value="deepblue">🌊 Глибина (Синьо-Бірюзовий)</option>
+                    <option value="toxic">☣️ Токсик (Зелений-Лайм)</option>
+                    <option value="sunrise">🌅 Світанок (Пурпур-Золото)</option>
                 </select>
             </div>
             
             <div class="control-group" style="margin-top: 15px;">
-                <div class="slider-label"><span>Радиус точки</span><span id="radiusVal" class="slider-val">25</span></div>
+                <div class="slider-label"><span>Радіус точки</span><span id="radiusVal" class="slider-val">25</span></div>
                 <input type="range" id="radiusRange" min="5" max="80" value="25">
                 
-                <div class="slider-label" style="margin-top: 15px;"><span>Размытие</span><span id="blurVal" class="slider-val">15</span></div>
+                <div class="slider-label" style="margin-top: 15px;"><span>Розмиття</span><span id="blurVal" class="slider-val">15</span></div>
                 <input type="range" id="blurRange" min="1" max="60" value="15">
                 
-                <div class="slider-label" style="margin-top: 15px;"><span>Чувствительность</span><span id="maxVal" class="slider-val">1.0</span></div>
+                <div class="slider-label" style="margin-top: 15px;"><span>Чутливість</span><span id="maxVal" class="slider-val">1.0</span></div>
                 <input type="range" id="maxRange" min="0.1" max="5" step="0.1" value="1.0">
             </div>
         </div>
@@ -81,11 +81,11 @@
     <!-- 2. Модальное (плавающее) окно результатов выделения зоны -->
     <div id="zoneModal" class="floating-window zone-window" style="display: none; top: 150px; left: 380px;">
         <div class="window-header" id="zoneHeader">
-            <span>📍 Анализ выделенной зоны</span>
+            <span>📍 Анализ виділеної зони</span>
             <button class="btn-close" id="clearZoneBtn">✖</button>
         </div>
         <div class="window-body">
-            <div class="zone-total" id="zoneTotalVal">Сумма: 0</div>
+            <div class="zone-total" id="zoneTotalVal">Сума: 0</div>
             <div class="zone-list" id="zoneListContainer"></div>
         </div>
     </div>
