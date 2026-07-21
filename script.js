@@ -384,7 +384,7 @@ function calculateZoneStats(layer) {
 
     const sortedNodes = Object.entries(nodeTotals).sort((a, b) => b[1] - a[1]);
 
-    zoneTotalVal.textContent = `Сумма: ${totalSum.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}`;
+    zoneTotalVal.textContent = `Сума: ${totalSum.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}`;
     zoneListContainer.innerHTML = '';
 
     if (sortedNodes.length === 0) {
