@@ -5,156 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heatmap Builder Pro</title>
     
-    <!-- Leaflet & Geoman CSS -->
+    <!-- CSS библиотеки -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    <style>
-        :root {
-            --sidebar-bg: #0f172a;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent: #38bdf8;
-            --accent-hover: #0ea5e9;
-            --input-bg: #1e293b;
-            --btn-export: #8b5cf6;
-            --btn-export-hover: #7c3aed;
-        }
-
-        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; display: flex; height: 100vh; overflow: hidden; background: #000; }
-        
-        /* --- Сайдбар --- */
-        #controls {
-            width: 360px;
-            height: 100%;
-            background: var(--sidebar-bg);
-            color: var(--text-main);
-            padding: 25px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        #map { flex: 1; height: 100%; z-index: 1; }
-        
-        h3 { margin: 0 0 20px 0; font-weight: 700; font-size: 1.4rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        
-        /* Кнопки */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            padding: 14px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-            font-family: inherit;
-            width: auto;
-        }
-
-        /* Загрузка */
-        .file-upload-wrapper { margin-bottom: 20px; text-align: center; }
-        input[type="file"] { display: none; }
-        .btn-upload { background: var(--input-bg); color: var(--text-main); width: 100%; box-sizing: border-box; }
-        .btn-upload:hover { background: #334155; border-color: var(--accent); }
-        .btn-upload.success { background: #065f46; border-color: #10b981; color: #fff; }
-        .btn-upload.success:hover { background: #047857; }
-        
-        /* Экспорт */
-        .export-section { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .btn-export { background: var(--input-bg); color: var(--text-main); width: 100%; }
-        .btn-export:hover { background: #334155; border-color: var(--btn-export); }
-
-        /* Настройки */
-        h4 { margin: 20px 0 10px 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
-        .control-group { background: var(--input-bg); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-
-        .slider-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
-        .slider-val { font-weight: bold; color: var(--accent); }
-
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 5px 0; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #fff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #334155; border-radius: 2px; }
-
-        select { width: 100%; padding: 10px; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; outline: none; }
-        select:hover { background: #475569; }
-
-        /* Элементы фильтров (Срезы) */
-        .slicer-container {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 160px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .slicer-btn {
-            background: #243146;
-            color: var(--text-main);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 0.85rem;
-            font-family: inherit;
-            transition: all 0.15s;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .slicer-btn:hover { background: #334155; border-color: rgba(255,255,255,0.2); }
-        .slicer-btn.active { background: var(--accent); color: #0f172a; font-weight: 600; border-color: var(--accent); }
-
-        /* Блок анализа выделенной зоны */
-        #zoneAnalysis {
-            display: none;
-            background: rgba(30, 58, 138, 0.4);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .zone-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; }
-        .zone-total { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
-        .zone-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .zone-item { display: flex; justify-content: space-between; font-size: 0.85rem; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 4px; }
-        .zone-item-name { font-weight: 500; color: #fff; }
-        .zone-item-val { color: #38bdf8; font-weight: bold; }
-        .btn-clear-zone { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
-        .btn-clear-zone:hover { background: #dc2626; }
-
-        #status { margin-top: 15px; font-size: 0.85rem; padding: 10px; border-radius: 6px; text-align: center; background: rgba(255,255,255,0.05); }
-        .hint-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; text-align: center; }
-
-        /* Скроллбар */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-    </style>
+    <!-- Наш собственный стиль -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div id="controls">
-        <h3>Heatmap Builder</h3>
-        
-        <div class="file-upload-wrapper">
-            <label for="fileInput" class="btn btn-upload" id="uploadLabel">
-                📂 Загрузить файл
-            </label>
-            <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+    <!-- Верхняя панель -->
+    <header id="topbar">
+        <div class="logo">🔥 Heatmap Pro</div>
+        <div class="top-controls">
+            <div class="file-upload-wrapper">
+                <label for="fileInput" class="btn btn-upload" id="uploadLabel">📂 Загрузить Excel / CSV</label>
+                <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+            </div>
+            
+            <button id="settingsBtn" class="btn btn-settings">⚙️ Настройки карты</button>
+            <button id="snapBtn" class="btn btn-export">📸 Скачать (.png)</button>
         </div>
+    </header>
 
-        <div id="settings">
-            <h4>Стиль</h4>
+    <!-- Основная рабочая область -->
+    <main id="workspace">
+        <!-- Левая панель (ТОЛЬКО ФИЛЬТРЫ) -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h3>🔍 Фильтры данных</h3>
+                <div id="status" class="status-badge">Нет данных</div>
+            </div>
+            
+            <div id="dynamicSlicers" class="slicers-wrapper">
+                <div class="empty-state">Загрузите файл, чтобы здесь появились срезы для фильтрации</div>
+            </div>
+        </aside>
+
+        <!-- Карта -->
+        <div id="map"></div>
+    </main>
+
+    <!-- 1. Модальное (плавающее) окно настроек тепловой карты -->
+    <div id="settingsModal" class="floating-window" style="display: none; top: 80px; right: 20px;">
+        <div class="window-header" id="settingsHeader">
+            <span>⚙️ Настройки тепловой карты</span>
+            <button class="btn-close" onclick="document.getElementById('settingsModal').style.display='none'">✖</button>
+        </div>
+        <div class="window-body">
             <div class="control-group">
                 <div class="slider-label">Цветовая схема</div>
                 <select id="gradientSelect">
@@ -165,10 +64,9 @@
                     <option value="sunrise">🌅 Рассвет (Пурпур-Золото)</option>
                 </select>
             </div>
-
-            <h4>Параметры тепловой карты</h4>
-            <div class="control-group">
-                <div class="slider-label"><span>Радиус</span><span id="radiusVal" class="slider-val">25</span></div>
+            
+            <div class="control-group" style="margin-top: 15px;">
+                <div class="slider-label"><span>Радиус точки</span><span id="radiusVal" class="slider-val">25</span></div>
                 <input type="range" id="radiusRange" min="5" max="80" value="25">
                 
                 <div class="slider-label" style="margin-top: 15px;"><span>Размытие</span><span id="blurVal" class="slider-val">15</span></div>
@@ -177,459 +75,29 @@
                 <div class="slider-label" style="margin-top: 15px;"><span>Чувствительность</span><span id="maxVal" class="slider-val">1.0</span></div>
                 <input type="range" id="maxRange" min="0.1" max="5" step="0.1" value="1.0">
             </div>
-
-            <!-- Блок для анализа выделенной зоны -->
-            <div id="zoneAnalysis">
-                <div class="zone-header">
-                    <div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">📍 В выделенной зоне</div>
-                        <div class="zone-total" id="zoneTotalVal">Сумма: 0</div>
-                    </div>
-                    <button class="btn-clear-zone" id="clearZoneBtn">✖ Очистить</button>
-                </div>
-                <div class="zone-list" id="zoneListContainer"></div>
-            </div>
-
-            <!-- Динамический контейнер для всех срезов -->
-            <div id="dynamicSlicers"></div>
-            
-            <div id="status" style="color: var(--text-muted)">Данные не загружены</div>
-        </div>
-
-        <div class="export-section">
-            <button id="snapBtn" class="btn btn-export">
-                📸 Скачать карту (.png)
-            </button>
         </div>
     </div>
 
-    <div id="map"></div>
+    <!-- 2. Модальное (плавающее) окно результатов выделения зоны -->
+    <div id="zoneModal" class="floating-window zone-window" style="display: none; top: 150px; left: 380px;">
+        <div class="window-header" id="zoneHeader">
+            <span>📍 Анализ выделенной зоны</span>
+            <button class="btn-close" id="clearZoneBtn">✖</button>
+        </div>
+        <div class="window-body">
+            <div class="zone-total" id="zoneTotalVal">Сумма: 0</div>
+            <div class="zone-list" id="zoneListContainer"></div>
+        </div>
+    </div>
 
-    <!-- Подключение библиотек -->
+    <!-- JS библиотеки -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
-    <!-- Leaflet Geoman для рисования фигур -->
     <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
-
-    <script>
-        // 1. Инициализация карты и слоев
-        const lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', maxZoom: 19, crossOrigin: true });
-        const darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB', maxZoom: 20, crossOrigin: true });
-        const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 18, crossOrigin: true });
-
-        const map = L.map('map', {
-            center: [49.589, 34.551], // По умолчанию центр
-            zoom: 6,
-            layers: [lightMap],
-            preferCanvas: true
-        });
-
-        const baseMaps = { "Светлая": lightMap, "Темная": darkMap, "Спутник": satelliteMap };
-        L.control.layers(baseMaps, null, {position: 'topright'}).addTo(map);
-
-        // Инициализация инструментов рисования Geoman
-        map.pm.addControls({
-            position: 'topleft',
-            drawPolygon: true,
-            drawRectangle: true,
-            drawMarker: false,
-            drawCircleMarker: false,
-            drawPolyline: false,
-            drawCircle: false,
-            drawText: false,
-            editMode: false,
-            dragMode: false,
-            cutPolygon: false,
-            removalMode: true
-        });
-
-        map.pm.setLang('ru');
-
-        // 2. Инициализация скриншотера
-        const screenshoter = L.simpleMapScreenshoter({ hidden: true, mimeType: 'image/png' }).addTo(map);
-
-        // 3. Переменные состояния
-        let heatLayer = null;
-        let cachedData = [];
-        let activeFilters = {};
-        let currentDrawnLayer = null;
-
-        const radiusInput = document.getElementById('radiusRange');
-        const blurInput = document.getElementById('blurRange');
-        const maxInput = document.getElementById('maxRange');
-        const gradientSelect = document.getElementById('gradientSelect');
-        const statusDiv = document.getElementById('status');
-        const uploadLabel = document.getElementById('uploadLabel');
-        const snapBtn = document.getElementById('snapBtn');
-        const dynamicSlicers = document.getElementById('dynamicSlicers');
-        
-        const zoneAnalysis = document.getElementById('zoneAnalysis');
-        const zoneTotalVal = document.getElementById('zoneTotalVal');
-        const zoneListContainer = document.getElementById('zoneListContainer');
-        const clearZoneBtn = document.getElementById('clearZoneBtn');
-
-        const gradients = {
-            default: { 0.4: 'blue', 0.65: 'lime', 1: 'red' },
-            fire: { 0.2: 'black', 0.5: 'maroon', 0.8: 'red', 1: 'orange' },
-            deepblue: { 0.2: '#000033', 0.5: '#003399', 0.8: '#0099ff', 1: '#ccffff' },
-            toxic: { 0.2: 'black', 0.5: 'green', 0.8: '#ccff00', 1: 'white' },
-            sunrise: { 0.2: 'black', 0.5: 'purple', 0.8: 'magenta', 1: 'gold' }
-        };
-
-        function parseExcelDate(rawDate) {
-            if (rawDate === undefined || rawDate === null) return null;
-            if (typeof rawDate === 'number' && rawDate > 30000 && rawDate < 60000) {
-                const dateObj = new Date((rawDate - 25569) * 86400 * 1000);
-                return `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
-            }
-            if (rawDate instanceof Date) {
-                return `${String(rawDate.getDate()).padStart(2, '0')}.${String(rawDate.getMonth() + 1).padStart(2, '0')}.${rawDate.getFullYear()}`;
-            }
-            return String(rawDate).trim();
-        }
-
-        // 4. Загрузка файла
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            uploadLabel.innerHTML = `⏳ Чтение...`;
-            uploadLabel.classList.remove('success');
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
-                    const firstSheetName = workbook.SheetNames[0];
-                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
-                    processData(jsonData, file.name);
-                } catch (err) {
-                    console.error(err);
-                    statusDiv.innerHTML = "<span style='color:#ef4444'>Ошибка файла</span>";
-                    uploadLabel.innerHTML = "📂 Загрузить файл";
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        function processData(data, filename) {
-            if (!data || data.length === 0) return;
-
-            const heatData = [];
-            let bounds = new L.LatLngBounds();
-            activeFilters = {};
-            dynamicSlicers.innerHTML = '';
-            clearZone();
-
-            const keys = Object.keys(data[0]);
-            const findKey = (s) => keys.find(k => k.toLowerCase().includes(s));
-            
-            const latKey = findKey('lat') || findKey('шир');
-            const lngKey = findKey('lng') || findKey('lon') || findKey('долг');
-            const valKey = findKey('val') || findKey('count') || findKey('weight') || findKey('вес') || findKey('кол') || findKey('знач');
-            
-            // Столбец для подписи точек в зоне (Склад / Узел / или первый текстовый)
-            const nodeKey = keys.find(k => k.toLowerCase().includes('склад') || k.toLowerCase().includes('узел')) || keys[0];
-
-            if (!latKey || !lngKey) {
-                statusDiv.innerHTML = "<span style='color:#ef4444'>Не найдены столбцы Lat/Lng (Широта/Долгота)</span>";
-                return;
-            }
-
-            const latIdx = keys.indexOf(latKey);
-            const lngIdx = keys.indexOf(lngKey);
-            const minCoordIdx = Math.min(latIdx, lngIdx);
-
-            // БЕРЕМ ВСЕ СТОЛБЦЫ, НАХОДЯЩИЕСЯ В ТАБЛИЦЕ ДО КООРДИНАТ!
-            const allFilterKeys = keys.filter((k, idx) => idx < minCoordIdx);
-
-            data.forEach((row, index) => {
-                const lat = parseFloat(row[latKey]);
-                const lng = parseFloat(row[lngKey]);
-                const val = valKey && row[valKey] !== undefined ? parseFloat(row[valKey]) : 1;
-                const nodeName = row[nodeKey] ? String(row[nodeKey]).trim() : `Точка #${index + 1}`;
-
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const pt = { lat, lng, val: isNaN(val) ? 1 : val, nodeName, filters: {} };
-                    
-                    // Собираем значения для всех столбцов до координат
-                    allFilterKeys.forEach(fKey => {
-                        let rawVal = row[fKey];
-                        // Если столбец похож на дату, форматируем
-                        if (fKey.toLowerCase().includes('дат') || fKey.toLowerCase().includes('date') || rawVal instanceof Date || (typeof rawVal === 'number' && rawVal > 30000 && rawVal < 60000)) {
-                            const parsedDate = parseExcelDate(rawVal);
-                            if (parsedDate) rawVal = parsedDate;
-                        }
-                        pt.filters[fKey] = rawVal !== undefined && rawVal !== null && rawVal !== '' ? String(rawVal).trim() : 'Не указано';
-                    });
-
-                    heatData.push(pt);
-                    bounds.extend([lat, lng]);
-                }
-            });
-
-            if (heatData.length > 0) {
-                cachedData = heatData;
-                renderSlicers(allFilterKeys);
-                drawHeatmap();
-                map.fitBounds(bounds);
-                
-                uploadLabel.innerHTML = `✅ ${filename}`;
-                uploadLabel.classList.add('success');
-                updateStatusText();
-            } else {
-                statusDiv.innerHTML = "Координаты не найдены";
-            }
-        }
-
-        // 5. Отрисовка Срезов (Excel Slicers)
-        function renderSlicers(filterKeys) {
-            dynamicSlicers.innerHTML = '';
-            let createdSlicersCount = 0;
-
-            filterKeys.forEach(fKey => {
-                activeFilters[fKey] = new Set();
-                
-                const uniqueVals = Array.from(new Set(cachedData.map(pt => pt.filters[fKey]))).filter(Boolean);
-                // Пропускаем создание среза, если во всем столбце только 1 уникальное значение (нет смысла фильтровать)
-                if (uniqueVals.length <= 1) return;
-
-                createdSlicersCount++;
-
-                // Сортировка (даты — хронологически, числа — по возрастанию, текст — по алфавиту)
-                if (fKey.toLowerCase().includes('дат') || fKey.toLowerCase().includes('date')) {
-                    uniqueVals.sort((a, b) => {
-                        const parseD = (s) => {
-                            const p = s.split(/[\.\-\/]/);
-                            return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : new Date(s);
-                        };
-                        return parseD(a) - parseD(b);
-                    });
-                } else {
-                    uniqueVals.sort((a, b) => {
-                        const numA = parseFloat(a), numB = parseFloat(b);
-                        if (!isNaN(numA) && !isNaN(numB) && String(numA) === a && String(numB) === b) {
-                            return numA - numB;
-                        }
-                        return a.localeCompare(b, 'ru');
-                    });
-                }
-
-                const section = document.createElement('div');
-                section.innerHTML = `
-                    <h4>🔍 ${fKey}</h4>
-                    <div class="control-group">
-                        <div class="slicer-container"></div>
-                        <div class="hint-text">Зажмите Ctrl / Cmd для мультивыбора</div>
-                    </div>
-                `;
-                dynamicSlicers.appendChild(section);
-
-                const container = section.querySelector('.slicer-container');
-
-                uniqueVals.forEach(val => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'slicer-btn';
-                    
-                    const count = cachedData.filter(pt => pt.filters[fKey] === val).length;
-                    btn.innerHTML = `<span>${val}</span><span style="opacity:0.5; font-size:0.75rem">${count}</span>`;
-                    
-                    btn.addEventListener('click', function(e) {
-                        const isMulti = e.ctrlKey || e.metaKey;
-                        const currentSet = activeFilters[fKey];
-
-                        if (isMulti) {
-                            if (currentSet.has(val)) {
-                                currentSet.delete(val);
-                                btn.classList.remove('active');
-                            } else {
-                                currentSet.add(val);
-                                btn.classList.add('active');
-                            }
-                        } else {
-                            const wasOnlyThis = currentSet.has(val) && currentSet.size === 1;
-                            currentSet.clear();
-                            container.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
-                            
-                            if (!wasOnlyThis) {
-                                currentSet.add(val);
-                                btn.classList.add('active');
-                            }
-                        }
-                        
-                        drawHeatmap();
-                        updateStatusText();
-                        if (currentDrawnLayer) calculateZoneStats(currentDrawnLayer);
-                    });
-                    
-                    container.appendChild(btn);
-                });
-            });
-
-            // Кнопка сброса всех фильтров
-            if (createdSlicersCount > 0) {
-                const resetBtn = document.createElement('button');
-                resetBtn.className = 'btn';
-                resetBtn.style.cssText = 'width: 100%; margin-top: 15px; background: #334155; font-size: 0.85rem; padding: 10px; border-color: rgba(255,255,255,0.2);';
-                resetBtn.innerHTML = '🔄 Сбросить все фильтры';
-                resetBtn.onclick = () => {
-                    for (const key in activeFilters) {
-                        activeFilters[key].clear();
-                    }
-                    dynamicSlicers.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
-                    drawHeatmap();
-                    updateStatusText();
-                    if (currentDrawnLayer) calculateZoneStats(currentDrawnLayer);
-                };
-                dynamicSlicers.insertBefore(resetBtn, dynamicSlicers.firstChild);
-            }
-        }
-
-        function getFilteredData() {
-            return cachedData.filter(pt => {
-                for (const [fKey, selectedSet] of Object.entries(activeFilters)) {
-                    if (selectedSet.size > 0 && !selectedSet.has(pt.filters[fKey])) {
-                        return false;
-                    }
-                }
-                return true;
-            });
-        }
-
-        function updateStatusText() {
-            const total = cachedData.length;
-            const filtered = getFilteredData().length;
-            const hasActiveFilters = Object.values(activeFilters).some(set => set.size > 0);
-            
-            if (hasActiveFilters) {
-                statusDiv.innerHTML = `<span style="color:#38bdf8">Показано: ${filtered} из ${total} точек</span>`;
-            } else {
-                statusDiv.innerHTML = `<span style="color:#38bdf8">Всего точек на карте: ${total}</span>`;
-            }
-        }
-
-        // 6. Отрисовка тепловой карты
-        function drawHeatmap() {
-            if (cachedData.length === 0) return;
-            const r = parseInt(radiusInput.value);
-            const b = parseInt(blurInput.value);
-            const m = parseFloat(maxInput.value);
-            const gKey = gradientSelect.value;
-
-            document.getElementById('radiusVal').textContent = r;
-            document.getElementById('blurVal').textContent = b;
-            document.getElementById('maxVal').textContent = m;
-
-            if (heatLayer) map.removeLayer(heatLayer);
-
-            const options = { radius: r, blur: b, maxZoom: 10, max: m };
-            if (gKey !== 'default') options.gradient = gradients[gKey];
-
-            const pointsToDraw = getFilteredData();
-            const leafletPoints = pointsToDraw.map(pt => [pt.lat, pt.lng, pt.val]);
-            heatLayer = L.heatLayer(leafletPoints, options).addTo(map);
-        }
-
-        // 7. Логика работы с зоной (Ray-Casting)
-        function isPointInPolygon(lat, lng, polyCoords) {
-            let x = lat, y = lng;
-            let inside = false;
-            for (let i = 0, j = polyCoords.length - 1; i < polyCoords.length; j = i++) {
-                let xi = polyCoords[i].lat, yi = polyCoords[i].lng;
-                let xj = polyCoords[j].lat, yj = polyCoords[j].lng;
-                let intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-                if (intersect) inside = !inside;
-            }
-            return inside;
-        }
-
-        function calculateZoneStats(layer) {
-            const activePoints = getFilteredData();
-            let pointsInZone = [];
-
-            if (layer instanceof L.Rectangle) {
-                const bounds = layer.getBounds();
-                pointsInZone = activePoints.filter(pt => bounds.contains([pt.lat, pt.lng]));
-            } else if (layer instanceof L.Polygon) {
-                const latlngs = layer.getLatLngs()[0];
-                pointsInZone = activePoints.filter(pt => isPointInPolygon(pt.lat, pt.lng, latlngs));
-            }
-
-            const totalSum = pointsInZone.reduce((sum, pt) => sum + pt.val, 0);
-
-            zoneTotalVal.textContent = `Сумма: ${totalSum.toLocaleString('ru-RU')}`;
-            zoneListContainer.innerHTML = '';
-
-            if (pointsInZone.length === 0) {
-                zoneListContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:10px;">В зоне нет точек</div>';
-            } else {
-                pointsInZone.forEach(pt => {
-                    const item = document.createElement('div');
-                    item.className = 'zone-item';
-                    item.innerHTML = `
-                        <span class="zone-item-name">${pt.nodeName}</span>
-                        <span class="zone-item-val">${pt.val.toLocaleString('ru-RU')}</span>
-                    `;
-                    zoneListContainer.appendChild(item);
-                });
-            }
-
-            zoneAnalysis.style.display = 'block';
-        }
-
-        function clearZone() {
-            if (currentDrawnLayer) {
-                map.removeLayer(currentDrawnLayer);
-                currentDrawnLayer = null;
-            }
-            zoneAnalysis.style.display = 'none';
-        }
-
-        map.on('pm:create', function(e) {
-            clearZone();
-            currentDrawnLayer = e.layer;
-            currentDrawnLayer.setStyle({ color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
-            calculateZoneStats(currentDrawnLayer);
-            currentDrawnLayer.on('pm:edit', () => calculateZoneStats(currentDrawnLayer));
-        });
-
-        map.on('pm:remove', function(e) {
-            if (e.layer === currentDrawnLayer) {
-                zoneAnalysis.style.display = 'none';
-                currentDrawnLayer = null;
-            }
-        });
-
-        clearZoneBtn.addEventListener('click', clearZone);
-
-        // 8. Скриншот
-        snapBtn.addEventListener('click', function() {
-            const originalText = snapBtn.textContent;
-            snapBtn.textContent = "⏳ Создание снимка...";
-            
-            screenshoter.takeScreen('blob').then(blob => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'heatmap_export.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                snapBtn.textContent = originalText;
-            }).catch(e => {
-                console.error(e);
-                alert("Ошибка при создании снимка.");
-                snapBtn.textContent = originalText;
-            });
-        });
-
-        radiusInput.addEventListener('input', drawHeatmap);
-        blurInput.addEventListener('input', drawHeatmap);
-        maxInput.addEventListener('input', drawHeatmap);
-        gradientSelect.addEventListener('change', drawHeatmap);
-    </script>
+    
+    <!-- Наш собственный скрипт -->
+    <script src="script.js"></script>
 </body>
 </html>

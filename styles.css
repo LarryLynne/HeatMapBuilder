@@ -1,0 +1,182 @@
+:root {
+    --bg-dark: #090d16;
+    --sidebar-bg: #0f172a;
+    --window-bg: rgba(15, 23, 42, 0.95);
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --input-bg: #1e293b;
+}
+
+body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--bg-dark); color: var(--text-main); }
+
+/* --- Верхняя панель --- */
+#topbar {
+    height: 60px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 1500;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.logo { font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+.top-controls { display: flex; gap: 10px; align-items: center; }
+
+/* Кнопки */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.15);
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: var(--input-bg);
+    color: var(--text-main);
+}
+.btn:hover { background: #334155; border-color: var(--accent); }
+.btn-upload.success { background: #065f46; border-color: #10b981; color: #fff; }
+.btn-settings:hover { border-color: #f59e0b; color: #f59e0b; }
+.btn-export:hover { border-color: #8b5cf6; color: #a78bfa; }
+input[type="file"] { display: none; }
+
+/* --- Рабочая область --- */
+#workspace { display: flex; flex: 1; height: calc(100vh - 60px); position: relative; }
+
+/* --- Левая панель (Фильтры) --- */
+#sidebar {
+    width: 340px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+.sidebar-header { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.status-badge { font-size: 0.75rem; background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.2); }
+.slicers-wrapper { padding: 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 15px; }
+.empty-state { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 40px; padding: 0 20px; line-height: 1.5; }
+
+/* --- Срезы (Excel Slicers) + Аккордеон (Баян) --- */
+.accordion-item {
+    background: var(--input-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.accordion-item:hover {
+    border-color: rgba(255,255,255,0.15);
+}
+
+/* Заголовок фильтра (кнопка разворачивания) */
+.accordion-header {
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    user-select: none;
+    transition: background 0.15s;
+}
+.accordion-header:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+/* Иконка стрелочки */
+.accordion-icon {
+    color: var(--accent);
+    font-size: 0.75rem;
+    transition: transform 0.25s ease;
+}
+.accordion-header.collapsed .accordion-icon {
+    transform: rotate(-90deg); /* При закрытии стрелка смотрит вправо */
+}
+
+/* Раскрывающийся блок с контентом */
+.accordion-body {
+    max-height: 250px;
+    overflow: hidden;
+    padding: 0 12px 12px 12px;
+    transition: max-height 0.25s ease-in-out, opacity 0.2s ease, padding 0.25s ease;
+    opacity: 1;
+}
+.accordion-body.collapsed {
+    max-height: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+/* Список кнопок внутри фильтра */
+.slicer-container { display: flex; flex-direction: column; gap: 5px; max-height: 160px; overflow-y: auto; padding-right: 4px; }
+.slicer-btn {
+    background: #243146; color: var(--text-main); border: 1px solid rgba(255,255,255,0.05); padding: 6px 10px;
+    border-radius: 5px; cursor: pointer; text-align: left; font-size: 0.8rem; font-family: inherit; transition: all 0.15s;
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+}
+.slicer-btn:hover { background: #334155; border-color: rgba(255,255,255,0.2); }
+.slicer-btn.active { background: var(--accent); color: #0f172a; font-weight: 600; border-color: var(--accent); }
+.hint-text { font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; text-align: center; }
+/* --- Карта --- */
+#map { flex: 1; height: 100%; z-index: 1; }
+
+/* --- Плавающие окна (Модалки без затемнения фона) --- */
+.floating-window {
+    position: absolute;
+    width: 300px;
+    background: var(--window-bg);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+.window-header {
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    cursor: move; /* Указывает, что окно можно таскать */
+    user-select: none;
+}
+.window-body { padding: 15px; }
+.btn-close { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; }
+.btn-close:hover { color: #ef4444; }
+
+/* Специфика окна зоны */
+.zone-window { width: 320px; border-color: var(--accent); }
+.zone-total { font-size: 1.1rem; font-weight: bold; color: var(--accent); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.zone-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.zone-item { display: flex; justify-content: space-between; font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 4px; }
+.zone-item-name { font-weight: 500; color: #fff; }
+.zone-item-val { color: var(--accent); font-weight: bold; }
+
+/* Ползунки и селекты в настройках */
+.slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; }
+.slider-val { font-weight: bold; color: var(--accent); }
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 4px 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #fff; cursor: pointer; margin-top: -5px; box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+select { width: 100%; padding: 8px; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; outline: none; font-size: 0.85rem; }
+select:hover { background: #475569; }
+
+/* Скроллбар */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
