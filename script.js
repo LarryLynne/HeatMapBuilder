@@ -105,7 +105,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    uploadLabel.innerHTML = `⏳ Чтение...`;
+    uploadLabel.innerHTML = `⏳ Читання...`;
     uploadLabel.classList.remove('success');
     
     const reader = new FileReader();
