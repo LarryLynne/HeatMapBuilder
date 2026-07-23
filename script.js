@@ -24,7 +24,8 @@ let currentDrawnLayer = null;
 
 let labelFields = new Set(); // Хранит названия фильтров, выбранных для подписей
 let labelsLayer = L.layerGroup().addTo(map); // Слой для отображения подписей
-const LABEL_ZOOM_THRESHOLD = 16; // Масштаб, при котором появляются подписи (настрой под себя)
+const labelZoomInput = document.getElementById('labelZoomRange');
+const labelZoomVal = document.getElementById('labelZoomVal');
 
 const radiusInput = document.getElementById('radiusRange');
 const blurInput = document.getElementById('blurRange');
@@ -464,12 +465,19 @@ radiusInput.addEventListener('input', drawHeatmap);
 blurInput.addEventListener('input', drawHeatmap);
 maxInput.addEventListener('input', drawHeatmap);
 gradientSelect.addEventListener('change', drawHeatmap);
+labelZoomInput.addEventListener('input', () => {
+    labelZoomVal.textContent = labelZoomInput.value;
+    updateLabels();
+});
 // --- 10. ОТРИСОВКА ПОДПИСЕЙ ---
 function updateLabels() {
     labelsLayer.clearLayers();
     
+    // ---> ДОБАВЬ ЭТУ СТРОЧКУ <---
+    const currentZoomThreshold = parseInt(labelZoomInput.value);
+    
     // 1. Проверяем зум и наличие выбранных галок
-    if (map.getZoom() < LABEL_ZOOM_THRESHOLD || labelFields.size === 0) return;
+    if (map.getZoom() < currentZoomThreshold || labelFields.size === 0) return;
     
     // 2. Получаем текущие видимые границы карты
     const bounds = map.getBounds();
