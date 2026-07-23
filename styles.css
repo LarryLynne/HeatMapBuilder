@@ -180,3 +180,39 @@ select:hover { background: #475569; }
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+/* --- Подписи точек на карте --- */
+.custom-point-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    font-size: 0.85rem;
+    font-weight: 700; /* Жирный шрифт для лучшей читаемости */
+    text-align: center;
+    padding: 0;
+    /* Белая обводка текста, чтобы он не терялся на фоне карты */
+    text-shadow: 
+        -1px -1px 0 #fff,  
+         1px -1px 0 #fff,
+        -1px  1px 0 #fff,
+         1px  1px 0 #fff;
+}
+
+.custom-point-label::before {
+    display: none !important;
+}
+
+/* Обертка для галки и текста в баяне */
+.header-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.accordion-header .label-toggle {
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    margin: 0;
+}

@@ -22,6 +22,10 @@ let cachedData = [];
 let activeFilters = {};
 let currentDrawnLayer = null;
 
+let labelFields = new Set(); // Хранит названия фильтров, выбранных для подписей
+let labelsLayer = L.layerGroup().addTo(map); // Слой для отображения подписей
+const LABEL_ZOOM_THRESHOLD = 16; // Масштаб, при котором появляются подписи (настрой под себя)
+
 const radiusInput = document.getElementById('radiusRange');
 const blurInput = document.getElementById('blurRange');
 const maxInput = document.getElementById('maxRange');
@@ -196,6 +200,7 @@ function processData(data, filename) {
         cachedData = heatData;
         renderSlicers(allFilterKeys);
         drawHeatmap();
+        updateLabels();
         map.fitBounds(bounds);
         
         uploadLabel.innerHTML = `✅ ${filename}`;
@@ -243,7 +248,10 @@ function renderSlicers(filterKeys) {
 
         section.innerHTML = `
             <div class="accordion-header ${isCollapsed ? 'collapsed' : ''}">
-                <span>🔍 ${fKey}</span>
+                <div class="header-title-wrapper">
+                    <input type="checkbox" class="label-toggle" title="Додати в підписи">
+                    <span>🔍 ${fKey}</span>
+                </div>
                 <span class="accordion-icon">▼</span>
             </div>
             <div class="accordion-body ${isCollapsed ? 'collapsed' : ''}">
@@ -251,6 +259,15 @@ function renderSlicers(filterKeys) {
                 <div class="hint-text">Ctrl / Cmd для мультивибору</div>
             </div>
         `;
+
+        // Обработчик для чекбокса подписей
+        const checkbox = section.querySelector('.label-toggle');
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Чтобы баян не сворачивался при клике на галку
+            if (e.target.checked) labelFields.add(fKey);
+            else labelFields.delete(fKey);
+            updateLabels();
+        });
         
         // Вешаем клик на заголовок для сворачивания / разворачивания
         const header = section.querySelector('.accordion-header');
@@ -288,6 +305,7 @@ function renderSlicers(filterKeys) {
                 }
                 
                 drawHeatmap();
+                updateLabels();
                 updateStatusText();
                 if (currentDrawnLayer) calculateZoneStats(currentDrawnLayer);
             });
@@ -305,6 +323,7 @@ function renderSlicers(filterKeys) {
             for (const key in activeFilters) activeFilters[key].clear();
             dynamicSlicers.querySelectorAll('.slicer-btn').forEach(b => b.classList.remove('active'));
             drawHeatmap();
+            updateLabels();
             updateStatusText();
             if (currentDrawnLayer) calculateZoneStats(currentDrawnLayer);
         };
@@ -445,3 +464,58 @@ radiusInput.addEventListener('input', drawHeatmap);
 blurInput.addEventListener('input', drawHeatmap);
 maxInput.addEventListener('input', drawHeatmap);
 gradientSelect.addEventListener('change', drawHeatmap);
+// --- 10. ОТРИСОВКА ПОДПИСЕЙ ---
+function updateLabels() {
+    labelsLayer.clearLayers();
+    
+    // 1. Проверяем зум и наличие выбранных галок
+    if (map.getZoom() < LABEL_ZOOM_THRESHOLD || labelFields.size === 0) return;
+    
+    // 2. Получаем текущие видимые границы карты
+    const bounds = map.getBounds();
+    const activePoints = getFilteredData();
+    
+    activePoints.forEach(pt => {
+        // ПРОПУСКАЕМ точки, которых нет на экране
+        if (!bounds.contains([pt.lat, pt.lng])) return;
+
+        let labelValues = [];
+        
+        // Собираем ТОЛЬКО значения выбранных полей
+        labelFields.forEach(fKey => {
+            let filterVal = pt.filters[fKey];
+            if (filterVal && filterVal !== 'Не вказано' && filterVal !== 'NULL') {
+                labelValues.push(filterVal);
+            }
+        });
+
+        // Если есть хоть одно нормальное значение для вывода
+        if (labelValues.length > 0) {
+            // Соединяем значения через перенос строки (на случай, если выбрано несколько галок)
+            let labelHtml = labelValues.join('<br>');
+            
+            const marker = L.circleMarker([pt.lat, pt.lng], {
+                radius: 0, 
+                opacity: 0,
+                fillOpacity: 0,
+                interactive: false // Чтобы текст не перехватывал клики по карте
+            });
+
+            marker.bindTooltip(labelHtml, {
+                permanent: true,
+                direction: 'center',
+                className: 'custom-point-label',
+                offset: [0, 0]
+            });
+
+            labelsLayer.addLayer(marker);
+        }
+    });
+}
+
+// Привязываем обновление к событию moveend 
+// (оно срабатывает и после окончания зума, и после перетаскивания карты)
+map.on('moveend', updateLabels);
+
+// Привязываем обновление подписей к изменению масштаба карты
+//map.on('zoomend', updateLabels);
